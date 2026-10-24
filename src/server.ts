@@ -205,10 +205,21 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
 }
 
 export default {
-  async fetch(request: Request, env: Env) {
+  async fetch(request: Request, env: any, ctx: any) {
+    const url = new URL(request.url);
+
+    // If accessing the main domain root, try to serve the built static UI
+    if (url.pathname === "/" || url.pathname === "") {
+      if (env.ASSETS) {
+        return await env.ASSETS.fetch(request);
+      }
+    }
+
+    // Otherwise, route the API calls normally to the AI Agent handlers
     return (
       (await routeAgentRequest(request, env)) ||
       new Response("Not found", { status: 404 })
     );
   }
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<any>;
+
