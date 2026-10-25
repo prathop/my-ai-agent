@@ -204,21 +204,21 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
   }
 }
 
+// Replace the entire bottom block at the end of src/server.ts with this:
 export default {
-  async fetch(request: Request, env: any, ctx: any) {
-    const url = new URL(request.url);
-
-    // If accessing the main domain root, try to serve the built static UI
-    if (url.pathname === "/" || url.pathname === "") {
-      if (env.ASSETS) {
-        return await env.ASSETS.fetch(request);
-      }
+  async fetch(request: Request, env: Env, _ctx: unknown) {
+    // 1. Try to route the incoming request to the AI Agent (e.g. Websockets / API calls)
+    const agentResponse = await routeAgentRequest(request, env);
+    if (agentResponse) {
+      return agentResponse;
     }
 
-    // Otherwise, route the API calls normally to the AI Agent handlers
-    return (
-      (await routeAgentRequest(request, env)) ||
-      new Response("Not found", { status: 404 })
-    );
+    // 2. If it's not an agent request, fall back and serve your built static UI files
+    const assetsEnv = env as unknown as Record<string, unknown>;
+    if (assetsEnv && assetsEnv.ASSETS && typeof assetsEnv.ASSETS === "object" && "fetch" in assetsEnv.ASSETS) {
+      return await (assetsEnv.ASSETS as { fetch: typeof fetch }).fetch(request);
+    }
+
+    return new Response("Not found", { status: 404 });
   },
-} satisfies ExportedHandler<any>;
+} satisfies ExportedHandler<Env>;
