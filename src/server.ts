@@ -7,7 +7,7 @@ import {
   pruneMessages,
   stepCountIs,
   streamText,
-  tool
+  tool,
 } from "ai";
 import { z } from "zod";
 
@@ -25,14 +25,14 @@ export class ChatAgent extends AIChatAgent<Env> {
         if (result.authSuccess) {
           return new Response("<script>window.close();</script>", {
             headers: { "content-type": "text/html" },
-            status: 200
+            status: 200,
           });
         }
         return new Response(
           `Authentication Failed: ${result.authError || "Unknown error"}`,
-          { headers: { "content-type": "text/plain" }, status: 400 }
+          { headers: { "content-type": "text/plain" }, status: 400 },
         );
-      }
+      },
     });
   }
 
@@ -51,9 +51,9 @@ export class ChatAgent extends AIChatAgent<Env> {
     const workersai = createWorkersAI({ binding: this.env.AI });
 
     const result = streamText({
-  model: workersai("@cf/meta/llama-3.1-8b-instruct", {
-    sessionAffinity: this.sessionAffinity
-  }),
+      model: workersai("@cf/meta/llama-3.1-8b-instruct", {
+        sessionAffinity: this.sessionAffinity,
+      }),
       system: `You are a helpful assistant that can understand images. You can check the weather, get the user's timezone, run calculations, and schedule tasks. When users share images, describe what you see and answer questions about them.
 
 ${getSchedulePrompt({ date: new Date() })}
@@ -63,7 +63,7 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
       messages: pruneMessages({
         messages: await convertToModelMessages(this.messages),
         toolCalls: "before-last-2-messages",
-        reasoning: "before-last-message"
+        reasoning: "before-last-message",
       }),
       tools: {
         // MCP tools from connected servers
@@ -73,7 +73,7 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
         getWeather: tool({
           description: "Get the current weather for a city",
           inputSchema: z.object({
-            city: z.string().describe("City name")
+            city: z.string().describe("City name"),
           }),
           execute: async ({ city }) => {
             // Replace with a real weather API in production
@@ -84,16 +84,16 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
               temperature: temp,
               condition:
                 conditions[Math.floor(Math.random() * conditions.length)],
-              unit: "celsius"
+              unit: "celsius",
             };
-          }
+          },
         }),
 
         // Client-side tool: no execute function — the browser handles it
         getUserTimezone: tool({
           description:
             "Get the user's timezone from their browser. Use this when you need to know the user's local time.",
-          inputSchema: z.object({})
+          inputSchema: z.object({}),
         }),
 
         // Approval tool: requires user confirmation before executing
@@ -105,7 +105,7 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
             b: z.number().describe("Second number"),
             operator: z
               .enum(["+", "-", "*", "/", "%"])
-              .describe("Arithmetic operator")
+              .describe("Arithmetic operator"),
           }),
           needsApproval: async ({ a, b }) =>
             Math.abs(a) > 1000 || Math.abs(b) > 1000,
@@ -115,16 +115,16 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
               "-": (x, y) => x - y,
               "*": (x, y) => x * y,
               "/": (x, y) => x / y,
-              "%": (x, y) => x % y
+              "%": (x, y) => x % y,
             };
             if (operator === "/" && b === 0) {
               return { error: "Division by zero" };
             }
             return {
               expression: `${a} ${operator} ${b}`,
-              result: ops[operator](a, b)
+              result: ops[operator](a, b),
             };
-          }
+          },
         }),
 
         scheduleTask: tool({
@@ -146,13 +146,13 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
             if (!input) return "Invalid schedule type";
             try {
               this.schedule(input, "executeTask", description, {
-                idempotent: true
+                idempotent: true,
               });
               return `Task scheduled: "${description}" (${when.type}: ${input})`;
             } catch (error) {
               return `Error scheduling task: ${error}`;
             }
-          }
+          },
         }),
 
         getScheduledTasks: tool({
@@ -161,13 +161,13 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
           execute: async () => {
             const tasks = this.getSchedules();
             return tasks.length > 0 ? tasks : "No scheduled tasks found.";
-          }
+          },
         }),
 
         cancelScheduledTask: tool({
           description: "Cancel a scheduled task by its ID",
           inputSchema: z.object({
-            taskId: z.string().describe("The ID of the task to cancel")
+            taskId: z.string().describe("The ID of the task to cancel"),
           }),
           execute: async ({ taskId }) => {
             try {
@@ -176,11 +176,11 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
             } catch (error) {
               return `Error cancelling task: ${error}`;
             }
-          }
-        })
+          },
+        }),
       },
       stopWhen: stepCountIs(20),
-      abortSignal: options?.abortSignal
+      abortSignal: options?.abortSignal,
     });
 
     return result.toUIMessageStreamResponse();
@@ -198,8 +198,8 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
       JSON.stringify({
         type: "scheduled-task",
         description,
-        timestamp: new Date().toISOString()
-      })
+        timestamp: new Date().toISOString(),
+      }),
     );
   }
 }
@@ -220,6 +220,5 @@ export default {
       (await routeAgentRequest(request, env)) ||
       new Response("Not found", { status: 404 })
     );
-  }
+  },
 } satisfies ExportedHandler<any>;
-
