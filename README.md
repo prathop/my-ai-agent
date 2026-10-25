@@ -193,7 +193,7 @@ import { openai } from "@ai-sdk/openai";
 
 // Inside onChatMessage:
 const result = streamText({
-  model: openai("gpt-5.2"),
+  model: openai("gpt-5.2")
   // ...
 });
 ```
@@ -214,7 +214,7 @@ npm install @ai-sdk/anthropic
 import { anthropic } from "@ai-sdk/anthropic";
 
 const result = streamText({
-  model: anthropic("claude-sonnet-4-20250514"),
+  model: anthropic("claude-sonnet-4-20250514")
   // ...
 });
 ```

@@ -1,5 +1,5 @@
 {
-  "name": "agent-starter",
+  "name": "my-project",
   "version": "1.0.0",
   "private": true,
   "description": "Starter template for building AI chat agents on Cloudflare",
@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^8.0.2",
-    "@cloudflare/vite-plugin": "^1.46.0",
+    "@cloudflare/vite-plugin": "^1.60.2",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tailwindcss/vite": "^4.3.1",
     "@types/node": "^26.6.5",
